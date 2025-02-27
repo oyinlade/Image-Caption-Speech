@@ -2,9 +2,9 @@ import streamlit as st
 from PIL import Image
 import io
 import requests
-import pyttsx3
-import threading
-import time
+from gtts import gTTS
+import os
+import base64
 from transformers import pipeline
 
 # Set page configuration
@@ -47,19 +47,23 @@ def get_image_caption(image):
     except Exception as e:
         return f"Error processing image: {str(e)}"
 
-# Function to speak text aloud
-def speak_text(text):
-    try:
-        engine = pyttsx3.init()
-        engine.say(text)
-        engine.runAndWait()
-    except Exception as e:
-        st.error(f"Error with text-to-speech: {str(e)}")
+# Function to create a link to download the TTS audio
+def get_audio_download_link(tts, filename="speech.mp3", text="Download Audio"):
+    """Generates a download link for the TTS audio file"""
+    with open(filename, "wb") as f:
+        tts.write_to_fp(f)
+    
+    with open(filename, "rb") as f:
+        audio_bytes = f.read()
+    
+    b64 = base64.b64encode(audio_bytes).decode()
+    href = f'<a href="data:audio/mp3;base64,{b64}" download="{filename}">{text}</a>'
+    return href
 
 # Main app
 def main():
     st.title("🖼️ Image Caption Generator with Text-to-Speech")
-    st.write("Upload an image, and I'll describe what I see and read it aloud!")
+    st.write("Upload an image, and I'll describe what I see!")
     
     # Display info about first-time loading
     st.info("⚠️ Note: The first time you run this app, it will download the captioning model which might take a few minutes. Subsequent runs will be much faster.")
@@ -82,11 +86,24 @@ def main():
                 st.subheader("Caption:")
                 st.write(caption)
                 
-                # Speak the caption
-                st.write("🔊 Speaking caption...")
-                
-                # Use threading to avoid blocking the UI
-                threading.Thread(target=speak_text, args=(caption,)).start()
+                # Generate TTS audio
+                try:
+                    tts = gTTS(text=caption, lang='en')
+                    
+                    # Create a download link for the audio
+                    st.markdown("### 🔊 Audio")
+                    audio_file = "caption_audio.mp3"
+                    tts.save(audio_file)
+                    
+                    # Audio player
+                    audio_bytes = open(audio_file, "rb").read()
+                    st.audio(audio_bytes, format="audio/mp3")
+                    
+                    # Download link
+                    st.markdown(get_audio_download_link(tts, audio_file, "Download audio file"), unsafe_allow_html=True)
+                    
+                except Exception as e:
+                    st.error(f"Error generating audio: {str(e)}")
                 
                 st.success("Done!")
 
