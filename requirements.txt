@@ -1,6 +1,6 @@
 streamlit
 pillow
 requests
-pyttsx3
+gtts
 transformers
 torch
