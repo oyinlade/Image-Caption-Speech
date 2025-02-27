@@ -9,7 +9,7 @@ import asyncio
 
 # Set page configuration
 st.set_page_config(
-    page_title="Image Caption Generator",
+    page_title="Image Caption Generator - Oyinlade's Treat 🌹",
     page_icon="🖼️",
     layout="centered"
 )
@@ -52,7 +52,7 @@ def main():
     st.title("🖼️ Image Caption Generator with Text-to-Speech")
     st.write("Upload an image, and I'll describe what I see!")
     
-    st.info("⚠️ First-time load may take a few seconds while the model is initialized.")
+    st.info("⚠️ First-time load may take a few seconds, but it gets faster after that 🤗🦾.")
     
     uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
     
