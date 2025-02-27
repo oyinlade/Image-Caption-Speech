@@ -1,6 +1,5 @@
 streamlit
-pillow
-requests
-gtts
+Pillow
 transformers
 torch
+edge-tts
