@@ -1,5 +1,7 @@
 streamlit
-Pillow
-transformers
+opencv-python
+pillow
+numpy
 torch
+transformers
 edge-tts
