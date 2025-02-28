@@ -3,12 +3,13 @@ from PIL import Image
 import cv2
 import numpy as np
 import torch
-import asyncio
 import base64
 import time
 import os
+import threading
 from transformers import BlipProcessor, BlipForConditionalGeneration
-import edge_tts
+import subprocess
+import tempfile
 
 # Set page configuration
 st.set_page_config(
@@ -33,6 +34,8 @@ def load_model():
         "Salesforce/blip-image-captioning-base", 
         torch_dtype=torch.float16
     )
+    if torch.cuda.is_available():
+        model = model.to("cuda")
     return processor, model
 
 # Function to generate image caption
@@ -40,7 +43,11 @@ def get_image_caption(image):
     processor, model = load_model()
     
     # Convert image for processing
-    inputs = processor(images=image, return_tensors="pt").to(model.device, torch.float16)
+    inputs = processor(images=image, return_tensors="pt")
+    if torch.cuda.is_available():
+        inputs = inputs.to("cuda", torch.float16)
+    else:
+        inputs = inputs.to(model.device, torch.float16)
     
     # Generate caption
     with torch.no_grad():
@@ -48,16 +55,32 @@ def get_image_caption(image):
     caption = processor.decode(out[0], skip_special_tokens=True)
     return caption
 
-# Function to generate TTS audio and return audio bytes
-async def generate_audio(text, filename="speech.mp3"):
-    """Generate audio file using edge-tts and return the audio bytes."""
-    tts = edge_tts.Communicate(text, "en-US-AriaNeural")
-    await tts.save(filename)
-    
-    with open(filename, "rb") as f:
-        audio_bytes = f.read()
-    
-    return audio_bytes
+# Function to generate TTS audio using edge-tts in a separate process
+def generate_audio(text, filename="speech.mp3"):
+    """Generate audio file using edge-tts via subprocess to avoid asyncio issues."""
+    try:
+        with tempfile.NamedTemporaryFile(suffix='.txt', delete=False) as f:
+            text_file = f.name
+            f.write(text.encode('utf-8'))
+        
+        # Use subprocess to run edge-tts
+        subprocess.run(
+            ["edge-tts", "--text-file", text_file, "--write-media", filename],
+            check=True,
+            stderr=subprocess.PIPE
+        )
+        
+        # Return audio bytes
+        with open(filename, "rb") as f:
+            audio_bytes = f.read()
+        
+        # Clean up temp file
+        os.unlink(text_file)
+        
+        return audio_bytes
+    except Exception as e:
+        st.error(f"Error generating audio: {str(e)}")
+        return None
 
 def main():
     st.title("📹 Real-time Environment Captioner")
@@ -74,6 +97,15 @@ def main():
         max_value=10, 
         value=st.session_state.capture_interval,
         help="How often to capture and analyze a new frame"
+    )
+    
+    # Camera selection
+    camera_options = [0, 1, 2]  # Add more if needed
+    selected_camera = st.sidebar.selectbox(
+        "Select Camera", 
+        options=camera_options,
+        index=0,
+        help="Choose which camera to use (try different options if default doesn't work)"
     )
     
     # Audio feedback settings
@@ -107,13 +139,16 @@ def main():
     if st.session_state.processing:
         # Access webcam
         try:
-            status_display.write("Starting camera...")
-            cap = cv2.VideoCapture(0)
+            status_display.write(f"Starting camera {selected_camera}...")
+            cap = cv2.VideoCapture(selected_camera)
             
             if not cap.isOpened():
-                st.error("Could not access webcam. Please check your permissions.")
-                st.session_state.processing = False
-                return
+                # Try alternative method for Linux
+                cap = cv2.VideoCapture(f'/dev/video{selected_camera}')
+                if not cap.isOpened():
+                    st.error(f"Could not access camera {selected_camera}. Please check your permissions or try a different camera index.")
+                    st.session_state.processing = False
+                    return
                 
             # Timestamp for frame capture interval
             last_capture_time = 0
@@ -156,8 +191,9 @@ def main():
                     if enable_audio:
                         try:
                             audio_file = "caption_audio.mp3"
-                            audio_bytes = asyncio.run(generate_audio(caption, audio_file))
-                            audio_placeholder.audio(audio_bytes, format="audio/mp3")
+                            audio_bytes = generate_audio(caption, audio_file)
+                            if audio_bytes:
+                                audio_placeholder.audio(audio_bytes, format="audio/mp3")
                         except Exception as e:
                             audio_placeholder.error(f"Error generating audio: {str(e)}")
                     
