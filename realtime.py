@@ -184,7 +184,6 @@ def main():
         st.write("2. At regular intervals, it analyzes a frame and generates a description")
         st.write("3. The description is displayed and read aloud (when audio is enabled)")
         st.write("4. This continues until you click 'Stop Camera'")
-        st.write("")
         st.write("For blind users, this provides continuous audio descriptions of their surroundings.")
 
 if __name__ == "__main__":
