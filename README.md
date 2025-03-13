@@ -2,7 +2,7 @@
 
 Welcome!
 
-[This app] https://image-caption-speech-2nfzakrufpbixcn7mtzvz6.streamlit.app/ lets you upload an image, generates a caption for it using a Salesforce Blip model, and even reads it out loud using TTS. 😉
+[This app] (https://image-caption-speech-2nfzakrufpbixcn7mtzvz6.streamlit.app/) lets you upload an image, generates a caption for it using a Salesforce Blip model, and even reads it out loud using TTS. 😉
 
 ---
 
@@ -63,7 +63,7 @@ Ensure you have Python installed (Python 3.8 or later is recommended).
    ```bash
    streamlit run app.py
    ```
-   or try the [deployed version] https://image-caption-speech-2nfzakrufpbixcn7mtzvz6.streamlit.app/
+   or try the [deployed version] (https://image-caption-speech-2nfzakrufpbixcn7mtzvz6.streamlit.app/)
 2. Upload an image and click **Generate Caption**.
 3. Listen to the generated caption or download the audio file.
 
