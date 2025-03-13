@@ -95,7 +95,7 @@ Feel free to fork this repository and submit pull requests to improve functional
 
 ## 🖼️ Demo Screenshot
 
-![My Image](testing.ppg)
+![My Image](testing.png)
 
 ---
 Developed with ❤️ by Oyinlade.
