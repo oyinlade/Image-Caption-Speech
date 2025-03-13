@@ -95,7 +95,7 @@ Feel free to fork this repository and submit pull requests to improve functional
 
 ## 🖼️ Demo Screenshot
 
-![My Image](testing.png)
+![My Image](testing.PNG)
 
 ---
 Developed with ❤️ by Oyinlade.
