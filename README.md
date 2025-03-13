@@ -18,8 +18,8 @@ Ensure you have Python installed (Python 3.8 or later is recommended).
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone <repo_url>
-   cd <repo_name>
+   git clone <https://github.com/oyinlade/Image-Caption-Speech>
+   cd <Image-Caption-Speech>
    ```
 2. Create a virtual environment (optional but recommended):
    ```bash
